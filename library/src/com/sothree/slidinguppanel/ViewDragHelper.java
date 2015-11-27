@@ -22,6 +22,7 @@ import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.VelocityTrackerCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.ScrollerCompat;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -467,6 +468,7 @@ public class ViewDragHelper {
         mActivePointerId = activePointerId;
         mCallback.onViewCaptured(childView, activePointerId);
         setDragState(STATE_DRAGGING);
+        Log.d("PANEL", "capture called, " + childView);
     }
 
     /**
@@ -539,7 +541,7 @@ public class ViewDragHelper {
     public boolean smoothSlideViewTo(View child, int finalLeft, int finalTop) {
         mCapturedView = child;
         mActivePointerId = INVALID_POINTER;
-
+        Log.d("PANEL", "smoothSlideViewTo calls force");
         return forceSettleCapturedViewAt(finalLeft, finalTop, 0, 0);
     }
 
@@ -556,10 +558,11 @@ public class ViewDragHelper {
      */
     public boolean settleCapturedViewAt(int finalLeft, int finalTop) {
         if (!mReleaseInProgress) {
+            Log.d("PANEL", "throw expection in settleCapturedViewAt");
             throw new IllegalStateException("Cannot settleCapturedViewAt outside of a call to " +
                     "Callback#onViewReleased");
         }
-
+        Log.d("PANEL", "settleCapturedViewAt calls force");
         return forceSettleCapturedViewAt(finalLeft, finalTop,
                 (int) VelocityTrackerCompat.getXVelocity(mVelocityTracker, mActivePointerId),
                 (int) VelocityTrackerCompat.getYVelocity(mVelocityTracker, mActivePointerId));
@@ -579,6 +582,8 @@ public class ViewDragHelper {
         final int startTop = mCapturedView.getTop();
         final int dx = finalLeft - startLeft;
         final int dy = finalTop - startTop;
+
+        Log.d("PANEL", "forceSettleCapturedViewAt, dy = " + dy);
 
         if (dx == 0 && dy == 0) {
             // Nothing to do. Send callbacks, be done.
@@ -698,6 +703,8 @@ public class ViewDragHelper {
                 (int) VelocityTrackerCompat.getYVelocity(mVelocityTracker, mActivePointerId),
                 minLeft, maxLeft, minTop, maxTop);
 
+        Log.d("PANEL", "flingCapturedView");
+
         setDragState(STATE_SETTLING);
     }
 
@@ -721,14 +728,15 @@ public class ViewDragHelper {
             boolean keepGoing = mScroller.computeScrollOffset();
             final int x = mScroller.getCurrX();
             final int y = mScroller.getCurrY();
+            int[] viewCoords = new int[2];
             final int dx = x - mCapturedView.getLeft();
             final int dy = y - mCapturedView.getTop();
 
-	    if(!keepGoing && dy != 0) { //add this 5 lines
+	    /*if(!keepGoing && dy != 0) { //add this 5 lines
 	                //Invalid drag state
 			            mCapturedView.setTop(0);
 				                return true;
-						        }
+						        }*/
 
             if (dx != 0) {
                 mCapturedView.offsetLeftAndRight(dx);
@@ -767,6 +775,7 @@ public class ViewDragHelper {
      * or {@link #flingCapturedView(int, int, int, int)}.
      */
     private void dispatchViewReleased(float xvel, float yvel) {
+        Log.d("PANEL", "dispatchViewReleased");
         mReleaseInProgress = true;
         mCallback.onViewReleased(mCapturedView, xvel, yvel);
         mReleaseInProgress = false;
@@ -876,6 +885,7 @@ public class ViewDragHelper {
     }
 
     void setDragState(int state) {
+        Log.d("PANEL", "setDragState called = " + state);
         if (mDragState != state) {
             mDragState = state;
             mCallback.onViewDragStateChanged(state);
@@ -1061,6 +1071,7 @@ public class ViewDragHelper {
      * @param ev The touch event received by the parent view
      */
     public void processTouchEvent(MotionEvent ev) {
+        Log.d("PANEL", "processTouchEvent, ev = " + ev);
         final int action = MotionEventCompat.getActionMasked(ev);
         final int actionIndex = MotionEventCompat.getActionIndex(ev);
 
@@ -1195,15 +1206,19 @@ public class ViewDragHelper {
             }
 
             case MotionEvent.ACTION_UP: {
+                Log.d("PANEL", "processTouchEvent, process ACTION_UP, state = " + mDragState);
                 if (mDragState == STATE_DRAGGING) {
-                    releaseViewForPointerUp();
+                    Log.d("PANEL", "processTouchEvent, call releaseViewForPointerUp");
+                            releaseViewForPointerUp();
                 }
                 cancel();
                 break;
             }
 
             case MotionEvent.ACTION_CANCEL: {
+                Log.d("PANEL", "processTouchEvent, process ACTION_CANCEL, state = " + mDragState);
                 if (mDragState == STATE_DRAGGING) {
+                    Log.d("PANEL", "processTouchEvent, call dispatchViewReleased(0, 0);");
                     dispatchViewReleased(0, 0);
                 }
                 cancel();
@@ -1382,6 +1397,7 @@ public class ViewDragHelper {
         final float yvel = clampMag(
                 VelocityTrackerCompat.getYVelocity(mVelocityTracker, mActivePointerId),
                 mMinVelocity, mMaxVelocity);
+        Log.d("PANEL", "releaseViewForPointerUp calls dispatchViewReleased");
         dispatchViewReleased(xvel, yvel);
     }
 

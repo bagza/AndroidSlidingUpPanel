@@ -16,6 +16,7 @@ import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -902,11 +903,11 @@ public class SlidingUpPanelLayout extends ViewGroup {
                 final float ady = Math.abs(y - mInitialMotionY);
                 final int dragSlop = mDragHelper.getTouchSlop();
 
-                if ((ady > dragSlop && adx > ady) || !isViewUnder(mDragView, (int) mInitialMotionX, (int) mInitialMotionY)) {
+                /*if ((ady > dragSlop && adx > ady) || !isViewUnder(mDragView, (int) mInitialMotionX, (int) mInitialMotionY)) {
                     mDragHelper.cancel();
                     mIsUnableToDrag = true;
                     return false;
-                }
+                }*/
                 break;
             }
 
@@ -915,6 +916,7 @@ public class SlidingUpPanelLayout extends ViewGroup {
                 // If the dragView is still dragging when we get here, we need to call processTouchEvent
                 // so that the view is settled
                 // Added to make scrollable views work (tokudu)
+                Log.d("PANEL", "layout, ACTION_UP, is drag = " + String.valueOf(mDragHelper.isDragging()));
                 if (mDragHelper.isDragging()) {
                     mDragHelper.processTouchEvent(ev);
                     return true;
@@ -926,10 +928,12 @@ public class SlidingUpPanelLayout extends ViewGroup {
 
     @Override
     public boolean onTouchEvent(@NonNull MotionEvent ev) {
+        Log.d("PANEL", "layout, onTouchEvent = " + ev + ", isEnabled = " + String.valueOf(isEnabled()) + ", isTouchEnabled() = " + String.valueOf(isTouchEnabled()));
         if (!isEnabled() || !isTouchEnabled()) {
             return super.onTouchEvent(ev);
         }
         try {
+            Log.d("PANEL", "layout, onTouchEvent, mDragHelper.processTouchEvent");
             mDragHelper.processTouchEvent(ev);
             return true;
         } catch (Exception ex) {
@@ -1428,7 +1432,7 @@ public class SlidingUpPanelLayout extends ViewGroup {
                 // settle at the bottom
                 target = computePanelTopPosition(0.0f);
             }
-
+            Log.d("PANEL", "called from panelLayout settleCapturedViewAt ");
             mDragHelper.settleCapturedViewAt(releasedChild.getLeft(), target);
             invalidate();
         }
